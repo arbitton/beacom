@@ -22,12 +22,15 @@ def find_cites(author):
       cites = get_cited_by(int(papers[i][1]))
       # print papers[i][1], cites 
       for cite in cites:
-         year = year_re.search(get_fieldvalues(cite, '269__C')[0])
-         if int(year.group()) not in year_dict:
-            year_dict[int(year.group())] = 1
-         else:
-            year_dict[int(year.group())] += 1
-         # print year.group()
+         fieldvalues_yearlist = get_fieldvalues(cite, '269__C')
+         if len(fieldvalues_yearlist) > 0:
+            year = year_re.search(fieldvalues_yearlist[0])
+            if year:
+               if int(year.group()) not in year_dict:
+                  year_dict[int(year.group())] = 1
+               else:
+                  year_dict[int(year.group())] += 1
+               # print year.group()
 
    if len(year_dict) > 0:
 
@@ -37,12 +40,10 @@ def find_cites(author):
       for i in range(start_year, end_year):
          if i not in year_dict:
             year_dict[i] = 0
-
    else:
-
       print "# Author has no citations"
 
-   print year_dict
+   # print year_dict
 
    #pull all cited papers of author's papers
    #find years of all cites
@@ -57,6 +58,7 @@ def plot_points(year_dict, start_year):
    current_year = start_year
    start = True
    total_cites = 0 
+   print "0 0"
 
    for year in year_dict:
       total_cites += year_dict[current_year]
