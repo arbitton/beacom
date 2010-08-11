@@ -17,6 +17,7 @@ def find_cites(author):
    
    start_year = 0
    year_dict = {}
+   total_cite_count = 0
 
    for i in range(0, len(papers)):
       cites = get_cited_by(int(papers[i][1]))
@@ -37,9 +38,10 @@ def find_cites(author):
       start_year = min(year_dict.keys())
       end_year = max(year_dict.keys())
 
-      for i in range(start_year, end_year):
+      for i in range(start_year, end_year + 1):
          if i not in year_dict:
             year_dict[i] = 0
+         total_cite_count += year_dict[i]
    else:
       print "# Author has no citations"
 
@@ -51,9 +53,9 @@ def find_cites(author):
    #(make sure to start time at date of first paper published!)
    #print out points
 
-   return year_dict, start_year
+   return year_dict, start_year, float(total_cite_count)
 
-def plot_points(year_dict, start_year):
+def plot_points(year_dict, start_year, total_cite_count):
 
    current_year = start_year
    start = True
@@ -63,7 +65,7 @@ def plot_points(year_dict, start_year):
    for year in year_dict:
       total_cites += year_dict[current_year]
       # print (cites in last five years), (total cites)
-      print find_citeslast5years(year_dict, start_year, current_year), total_cites 
+      print find_citeslast5years(year_dict, start_year, current_year)/total_cite_count, total_cites/total_cite_count
       current_year += 1
 
 def find_citeslast5years(year_dict, start_year, current_year):
@@ -83,8 +85,8 @@ def find_citeslast5years(year_dict, start_year, current_year):
 def main(authors):
 
    for author in authors:
-      year_dict, start_year = find_cites(author)
-      plot_points(year_dict, start_year)
+      year_dict, start_year, total_cite_count = find_cites(author)
+      plot_points(year_dict, start_year, total_cite_count)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
