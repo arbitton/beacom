@@ -15,12 +15,11 @@ def find_cites(author):
    print "# Author:", author
    papers = get_realauthor_data(author, 'bibrec_id')
    
-   start_year = 0
    year_dict = {}
-   total_cite_count = 0
+   lifetime_cites = 0
 
-   for i in range(0, len(papers)):
-      cites = get_cited_by(int(papers[i][1]))
+   for paper in papers:
+      cites = get_cited_by(int(paper[1]))
       # print papers[i][1], cites 
       for cite in cites:
          fieldvalues_yearlist = get_fieldvalues(cite, '269__C')
@@ -41,21 +40,62 @@ def find_cites(author):
       for i in range(start_year, end_year + 1):
          if i not in year_dict:
             year_dict[i] = 0
-         total_cite_count += year_dict[i]
+         lifetime_cites += year_dict[i]
    else:
       print "# Author has no citations"
 
    # print year_dict
 
-   #pull all cited papers of author's papers
-   #find years of all cites
-   #calculate each point as time increases
-   #(make sure to start time at date of first paper published!)
-   #print out points
+   return year_dict, start_year, float(lifetime_cites)
 
-   return year_dict, start_year, float(total_cite_count)
+def find_citesb(author):
 
-def plot_points(year_dict, start_year, total_cite_count):
+   print "# Author:", author
+   papers = get_realauthor_data(author, 'bibrec_id')
+  
+   paper_dict = {}
+   # print papers, "Papers"
+   print 'Number of papers:', len(papers)
+
+   lifetime_cites = 0
+
+   for paper in papers:
+      paper_yearlist = get_fieldvalues(int(paper[1]), '269__C')
+      # print paper_yearlist, "Paper year list"
+      print paper[1]
+      if len(paper_yearlist) > 0:
+         paper_year_match = year_re.search(paper_yearlist[0])
+         if paper_year_match:
+            paper_year = int(paper_year_match.group())
+            # print paper_year
+            cites = get_cited_by(int(paper[1]))
+            print cites
+            for cite in cites:
+               fieldvalues_yearlist = get_fieldvalues(cite, '269__C')
+               if len(fieldvalues_yearlist) > 0:
+                  cite_year_match = year_re.search(fieldvalues_yearlist[0])
+                  if cite_year_match:
+                     cite_year = int(cite_year_match.group())
+                     if paper_year not in paper_dict:
+                        paper_dict[paper_year] = {cite_year: 1}
+                     elif cite_year not in paper_dict[paper_year]:
+                        paper_dict[paper_year] = {cite_year: 1}
+                     else:
+                        paper_dict[paper_year][cite_year] += 1
+
+   start_year = 0
+               
+   if len(paper_dict) > 0:
+
+      ##### THIS IS WRONG FIX THIS ########################### 
+      start_year = min(paper_dict.keys())
+      end_year = max(paper_dict.keys())
+
+   print paper_dict
+
+   return paper_dict, start_year, float(lifetime_cites)
+
+def plot_points(year_dict, start_year, lifetime_cites):
 
    current_year = start_year
    start = True
@@ -65,7 +105,7 @@ def plot_points(year_dict, start_year, total_cite_count):
    for year in year_dict:
       total_cites += year_dict[current_year]
       # print (cites in last five years), (total cites)
-      print find_citeslast5years(year_dict, start_year, current_year)/total_cite_count, total_cites/total_cite_count
+      print find_citeslast5years(year_dict, start_year, current_year), total_cites
       current_year += 1
 
 def find_citeslast5years(year_dict, start_year, current_year):
@@ -82,11 +122,18 @@ def find_citeslast5years(year_dict, start_year, current_year):
 
    return result
 
-def main(authors):
+def plot_pointsb(year_dict, start_year, lifetime_cites):
 
-   for author in authors:
-      year_dict, start_year, total_cite_count = find_cites(author)
+   return None
+
+def main(args):
+
+   if args[0] == 'allpapers':
+      year_dict, start_year, total_cite_count = find_cites(args[1])
       plot_points(year_dict, start_year, total_cite_count)
+   else:
+      paper_dict, start_year, total_cite_count = find_citesb(args[0])
+      # plot_pointsb(paper_dict, start_year, lifetime_cites)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
