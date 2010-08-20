@@ -10,6 +10,37 @@ import re
 
 year_re = re.compile("^[0-9]{4}")
 
+"""
+This program is designed to be run at the command line.
+
+The program takes an author id and outputs a list of x and y coordinates.
+These coordinate pairs correspond to the author's accumulated citations
+in the past five years versus the author's overall citation count. Each
+point is calculated for each year in the author's career.
+
+The first parameter it takes determines what type of plot should be generated:
+   *"5years" denotes that only citations from papers written within the past 5 years
+     be plotted when calculating the citations in the past 5 years
+   *"allpapers" denotes that the program should create no constraint for calculating
+     citations in the past 5 years based on when papers were published
+
+The second parameter it takes determines how to scale the points:
+   *"noscale" denotes that all points, with respect to both x and y coordinates
+     should not be scaled
+   *"lifetime" denotes that all points, with respect to both x and y coordinates
+     should be divided by the author's lifetime cites
+
+The final parameter it takes is the author's id number.
+
+Examples:
+python chart_author.py 5years noscale 65369
+python chart_author.py allpapers lifetime 21315
+python chart_author.py --help
+etc.
+
+"""
+
+
 def find_cites(author):
 
    print "# Author:", author
@@ -100,17 +131,26 @@ def find_citesb(author):
 
    return year_dict, start_year, end_year, float(lifetime_cites)
 
-def plot_points(year_dict, start_year, lifetime_cites):
+def plot_points(year_dict, start_year, lifetime_cites, lifetime_scale):
 
    current_year = start_year
    total_cites = 0 
    print "0 0"
 
+   if lifetime_scale:
+      scale_factor = lifetime_cites
+   else:
+      scale_factor = 1
+
    for year in year_dict:
       total_cites += year_dict[current_year]
       # print (cites in last five years), (total cites)
-      print find_citeslast5years(year_dict, start_year, current_year), total_cites, current_year
+      print find_citeslast5years(year_dict, start_year, current_year)/scale_factor, total_cites/scale_factor #, current_year
       current_year += 1
+
+#############################
+# All defitions that have a 'b' at the end represent the second implementation
+# of this program, to plot cites only from papers within the past five years
 
 def find_citeslast5years(year_dict, start_year, current_year):
 
@@ -126,18 +166,23 @@ def find_citeslast5years(year_dict, start_year, current_year):
 
    return result
 
-def plot_pointsb(year_dict, start_year, end_year, lifetime_cites):
+def plot_pointsb(year_dict, start_year, end_year, lifetime_cites, lifetime_scale):
 
    current_year = start_year
    print "0 0"
 
    total_cites = 0
 
+   if lifetime_scale:
+      scale_factor = lifetime_cites
+   else:
+      scale_factor = 1
+
    for year in range(start_year, end_year+1):
       for x in year_dict:
          if current_year in year_dict[x]:
             total_cites += year_dict[x][current_year]
-      print find_citeslast5yearsb(year_dict, current_year), total_cites, current_year
+      print find_citeslast5yearsb(year_dict, current_year)/scale_factor, total_cites/scale_factor #, current_year
       current_year += 1
        
 def find_citeslast5yearsb(year_dict, current_year):
@@ -155,14 +200,60 @@ def find_citeslast5yearsb(year_dict, current_year):
 
    return result
 
+def helpmessage():
+   print "This program is designed to be run at the command line.\n"
+   print "The program takes an author id and outputs a list of x and y coordinates."
+   print "These coordinate pairs correspond to the author's accumulated citations in the past"
+   print "five years versus the author's overall citation count. Each point is calculated for"
+   print "each year in the author's career.\n"
+   print "The first parameter it takes determines what type of plot should be generated:"
+   print "   *'5years' denotes that only citations from papers written within the past 5 years"
+   print "    be plotted when calculating the citations in the past 5 years"
+   print "   *'allpapers' denotes that the program should create no constraint for calculating"
+   print "    citations in the past 5 years based on when papers were published\n"
+
+   print "The second parameter it takes determines how to scale the points:"
+   print "   *'noscale' denotes that all points, with respect to both x and y coordinates"
+   print "     should not be scaled"
+   print "   *'lifetime' denotes that all points, with respect to both x and y coordinates"
+   print "     should be divided by the author's lifetime cites\n"
+   
+   print "The final parameter it takes is the author's id number.\n"
+
+   print "Examples:"
+   print "python chart_author.py 5years noscale 65369"
+   print "python chart_author.py allpapers lifetime 21315"
+   print "python chart_author.py --help"
+   print "etc."
+
 def main(args):
 
-   if args[0] == 'allpapers':
-      year_dict, start_year, lifetime_cites = find_cites(args[1])
-      plot_points(year_dict, start_year, lifetime_cites)
+   if len(args) == 0:
+      print "Incorrect input. For help page try: 'python chart_author.py --help'"
+   elif args[0] == 'allpapers':
+      if args[1] == 'lifetime':
+         lifetime_scale = True
+      elif args[1] == 'noscale':
+         lifetime_scale = False
+      else:
+         print "Wrong second argument. Expecting 'lifetime' or 'noscale'."
+         return None
+      year_dict, start_year, lifetime_cites = find_cites(args[2])
+      plot_points(year_dict, start_year, lifetime_cites, lifetime_scale)
+   elif args[0] == '5years':
+      if args[1] == 'lifetime':
+         lifetime_scale = True
+      elif args[1] == 'noscale':
+         lifetime_scale = False
+      else:
+         print "Wrong second argument. Expecting 'lifetime' or 'noscale'."
+         return None
+      year_dict, start_year, end_year, lifetime_cites = find_citesb(args[2])
+      plot_pointsb(year_dict, start_year, end_year, lifetime_cites, lifetime_scale)
+   elif args[0] == '--help':
+      helpmessage()
    else:
-      year_dict, start_year, end_year, lifetime_cites = find_citesb(args[0])
-      plot_pointsb(year_dict, start_year, end_year, lifetime_cites)
+      print "Incorrect input. For help page try: 'python chart_author.py --help'"
 
 if __name__ == "__main__":
    main(sys.argv[1:])
