@@ -42,6 +42,24 @@ etc.
 
 
 def find_cites(author):
+   """
+   Find and return all necessary components for plotting the data set.
+
+   Returned values:
+   1. year_dict: a dictionary keyed by years with values of the citations that occured in that year
+   2. start_year: an integer that holds the year the first citation occured, used for calculating
+      points to plot
+   3. lifetime_cites: an integer holding the total amount of cites the author has in the present
+      day, used to scale the final data set
+
+   This definition first grabs a list of all the papers written by the author. From there,
+   it iterates through the list, pulling the citations of each paper and incrementing the
+   appropriate year in the year_dict dictionary for that citations year.
+
+   Next, it iterates through the year ditionary to fill in values for missing years, setting them
+   to zero. It also calculates the lifetime cites during this iteration.
+
+   """
 
    print "# Author:", author
    papers = get_realauthor_data(author, 'bibrec_id')
@@ -80,6 +98,22 @@ def find_cites(author):
    return year_dict, start_year, float(lifetime_cites)
 
 def find_citesb(author):
+
+   """
+   This defition plays the same role as the above defition of a similar name. However,
+   it creates a different dictionary, as this definition is used only when the user
+   wants to plot citations that occured in the past five years from papers published
+   in the past five years only.
+
+   The year dictionary in rather keyed by year of paper published. The values of the 
+   keys are then another dictionary that holds years as the keys (of citations)
+   with the values as the number of citations.
+   Ex: {paper year: {citation year, count}}
+
+   All other return values are the same, with the addition of 'end_year', which
+   is an integer denoting the final year the author had a paper cited.
+
+   """
 
    print "# Author:", author
    papers = get_realauthor_data(author, 'bibrec_id')
@@ -133,6 +167,15 @@ def find_citesb(author):
 
 def plot_points(year_dict, start_year, lifetime_cites, lifetime_scale):
 
+   """
+   This definition plots the points from the data set pulled in "find_cites"
+
+   It scales the data based on the user inputted command.
+   If the user opted for "lifetime", the program divides each point by the author's
+   lifetime cites.
+
+   """
+
    current_year = start_year
    total_cites = 0 
    print "0 0"
@@ -154,6 +197,13 @@ def plot_points(year_dict, start_year, lifetime_cites, lifetime_scale):
 
 def find_citeslast5years(year_dict, start_year, current_year):
 
+   """
+   This definition calculates and returns the number of cites that occured
+   in the last five years given a specific year. This, paired with the overall_cites
+   for that year constitute the x,y pair for a specific year.
+
+   """
+
    result = 0
 
    if current_year - start_year >= 4:
@@ -167,6 +217,14 @@ def find_citeslast5years(year_dict, start_year, current_year):
    return result
 
 def plot_pointsb(year_dict, start_year, end_year, lifetime_cites, lifetime_scale):
+
+
+   """
+   This defition plays the same role as the above defition of a similar name. However,
+   it is used when the users opts to have the program plot cites from the past five
+   years only from papers published within the past five years.
+
+   """
 
    current_year = start_year
    print "0 0"
@@ -186,6 +244,13 @@ def plot_pointsb(year_dict, start_year, end_year, lifetime_cites, lifetime_scale
       current_year += 1
        
 def find_citeslast5yearsb(year_dict, current_year):
+
+   """
+   This defition plays the same role as the above defition of a similar name. However,
+   it is used when the users opts to have the program plot cites from the past five
+   years only from papers published within the past five years.
+
+   """
 
    result = 0
 
